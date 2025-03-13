@@ -1,0 +1,118 @@
+import random
+def print_board(board):
+    for row in board:
+        print("|".join(row))
+        print("-" * 5)
+
+def check_winner(board):
+    for row in board:
+        if row[0] == row[1] == row[2] != ' ':
+            return row[0]
+    
+    for col in range(3):
+        if board[0][col] == board[1][col] == board[2][col] != ' ':
+            return board[0][col]
+    
+    if board[0][0] == board[1][1] == board[2][2] != ' ':
+        return board[0][0]
+    
+    if board[0][2] == board[1][1] == board[2][0] != ' ':
+        return board[0][2]
+    
+    return None
+
+def is_draw(board):
+    for row in board:
+        if ' ' in row:
+            return False
+    return True
+
+def is_game_over(board):
+    return check_winner(board) is not None or is_draw(board)
+def minimax(board, depth, is_maximizing, alpha, beta):
+    winner = check_winner(board)
+    if winner == 'O':
+        return 1  # AI win
+    if winner == 'X':
+        return -1  # Human win
+    if is_draw(board):
+        return 0  # Draw
+
+    if is_maximizing:
+        max_eval = float('-inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] == ' ':
+                    board[row][col] = 'O'  # AI's move
+                    eval = minimax(board, depth + 1, False, alpha, beta)
+                    board[row][col] = ' '  # Undo the move
+                    max_eval = max(max_eval, eval)
+                    alpha = max(alpha, eval)
+                    if beta <= alpha:
+                        break
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] == ' ':
+                    board[row][col] = 'X'  # Human's move
+                    eval = minimax(board, depth + 1, True, alpha, beta)
+                    board[row][col] = ' '  # Undo the move
+                    min_eval = min(min_eval, eval)
+                    beta = min(beta, eval)
+                    if beta <= alpha:
+                        break
+        return min_eval
+
+def best_move(board):
+    best_val = float('-inf')
+    move = None
+    for row in range(3):
+        for col in range(3):
+            if board[row][col] == ' ':
+                board[row][col] = 'O'  # AI's move
+                move_val = minimax(board, 0, False, float('-inf'), float('inf'))
+                board[row][col] = ' '  # Undo the move
+                if move_val > best_val:
+                    best_val = move_val
+                    move = (row, col)
+    return move
+
+def play_game():
+    board = [[' ' for _ in range(3)] for _ in range(3)]
+    human = 'X'
+    ai = 'O'
+    current_player = human
+
+    print("Welcome to Tic-Tac-Toe! You are 'X', AI is 'O'.")
+
+    while not is_game_over(board):
+        print_board(board)
+        
+        if current_player == human:
+            # Human player's move
+            row, col = map(int, input("Enter your move (row col): ").split())
+            if board[row][col] == ' ':
+                board[row][col] = human
+                current_player = ai
+            else:
+                print("Invalid move, try again.")
+        else:
+            # AI's move
+            print("AI is making its move...")
+            row, col = best_move(board)
+            board[row][col] = ai
+            current_player = human
+
+    print_board(board)
+    winner = check_winner(board)
+    if winner == human:
+        print("Congratulations! You win!")
+    elif winner == ai:
+        print("AI wins! Better luck next time.")
+    else:
+        print("It's a draw!")
+
+# Run the game
+play_game()
